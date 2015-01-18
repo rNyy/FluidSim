@@ -198,15 +198,13 @@ int main(int argc, char** argv)
 	
 void renderGL(void){
  	preDisplay();
+
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
  	static bool flag[10]={false,false,false,false,false,true};//boundary grid particles surface vector mat
 
 	char output1 = ' ';
 	bool anyUpdation = false;
-	glColor3f(0,0.4,0.4);
-	glBegin(GL_LINES);
-	 glVertex3f(-1,-1,0);
-	 glVertex3f(1,1,0);
-	glEnd();
+	glColor3f(1,0,0);
 
 	switch(output1){
 		case'~':
