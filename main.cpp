@@ -1,3 +1,4 @@
+#include "gl_framework.h"
 #include "commonData.h"
 #include "keyboard.h"
 #include "main.h"
@@ -63,7 +64,7 @@ void initParticles()
 }
 
 /*------------------Code Below this is used when rendered is ON---------*/
-void display ( void ) ;
+void renderGL( void ) ;
 void preDisplay ( );
 void postDisplay ( );
 void openGlutWindow ( char* windowName) ;
@@ -71,16 +72,104 @@ void reshape ( int w, int h ) ;
 void idleFun();
 
 #ifdef WG
+
+///////////////////////////GLFW CODE/////////////////////////////////////
+/**/
+int main (int argc, char *argv[]) 
+{
+  grid_size = GRID_SIZE;
+  nthreads = NTHREADS;	
+  if(argc>=2){
+    nthreads = atoi(argv[1]);
+    grid_size = atoi(argv[2]);
+  }
+  omp_set_num_threads(nthreads);
+   
+ //! The pointer to the GLFW window
+  GLFWwindow* window;
+ 
+  //! Setting up the GLFW Error callback
+  glfwSetErrorCallback(csX75::error_callback);
+
+  //! Initialize GLFW
+  if (!glfwInit())
+    return -1;
+
+  //! Create a windowed mode window and its OpenGL context
+  window = glfwCreateWindow(winSizeX, winSizeY, " Liquid_Simulator-LevelSet+Surface", NULL, NULL);
+  if (!window)
+    {
+      glfwTerminate();
+      return -1;
+    }
+
+  int i=pthread_getconcurrency();
+
+  //! Make the window's context current 
+  glfwMakeContextCurrent(window);
+
+  //Initialize GLEW
+ 
+  GLenum err = glewInit();
+  if (GLEW_OK != err)
+    {
+      //Problem: glewInit failed, something is seriously wrong.
+      std::cerr<<"GLEW Init Failed : %s"<<std::endl;
+    }
+
+  //Keyboard Callback
+  glfwSetKeyCallback(window, csX75::key_callback);
+  //Framebuffer resize callback
+  glfwSetFramebufferSizeCallback(window, csX75::framebuffer_size_callback);
+
+  // Ensure we can capture the escape key being pressed below
+  glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
+
+  //Initialize GL state
+  csX75::initGL();
+  // openglutwindow eqvt
+  // Loop until the user closes the window
+
+
+  initMain();
+
+  while (glfwWindowShouldClose(window) == 0)
+    {
+      glClearColor( 0.0f, 0.0f, 0.0f, 1.0f);
+      glClear(GL_COLOR_BUFFER_BIT);
+      //      glfwSwapBuffers(window);
+      //      glClear(GL_COLOR_BUFFER_BIT);
+      //      glfwSwapBuffers(window);
+      // Render here
+      renderGL();
+
+      // Swap front and back buffers
+      glfwSwapBuffers(window);
+      
+      // Poll for and process events
+      glfwPollEvents();
+    }
+  
+  glfwTerminate();
+  return 0;
+}
+
+/**/
+/////////////////////////////////////////////////////////////////////////
+
+
+/******************** GLUT CODE ********************************************/
+/*
 int main(int argc, char** argv)
 {
-	grid_size = GRID_SIZE;
-	nthreads = NTHREADS;	
-	if(argc>=2){
-	nthreads = atoi(argv[1]);
-	grid_size = atoi(argv[2]);
-	}
-   	omp_set_num_threads(nthreads);
-   
+  grid_size = GRID_SIZE;
+  nthreads = NTHREADS;	
+  if(argc>=2){
+    nthreads = atoi(argv[1]);
+    grid_size = atoi(argv[2]);
+  }
+  omp_set_num_threads(nthreads);
+  
    /*#pragma omp parallel
    {
 		cout<<"Hello"<<endl;
@@ -89,10 +178,10 @@ int main(int argc, char** argv)
    /*matrix<double > temp;
    temp.resize(10,10);
    #pragma omp parallel for
-   	for(int i=0;i<10;i++)
+   for(int i=0;i<10;i++)
 		for(int j=0;j<10;j++)
 			cout<<temp(i,j);
-   */
+			/**
   
    glutInit(&argc, argv);
    initMain ();
@@ -104,16 +193,20 @@ int main(int argc, char** argv)
    glutMainLoop();
    
    return 0; 
-}
+   }*/
 #endif
 	
-void display(void){
-	preDisplay();
-
-	static bool flag[10]={false,false,false,false,false,true};//boundary grid particles surface vector mat
+void renderGL(void){
+ 	preDisplay();
+ 	static bool flag[10]={false,false,false,false,false,true};//boundary grid particles surface vector mat
 
 	char output1 = ' ';
 	bool anyUpdation = false;
+	glColor3f(0,0.4,0.4);
+	glBegin(GL_LINES);
+	 glVertex3f(-1,-1,0);
+	 glVertex3f(1,1,0);
+	glEnd();
 
 	switch(output1){
 		case'~':
@@ -144,22 +237,21 @@ void display(void){
 			flag[6] = !flag[6];
 			//render->renderMat(sGrid->isFluidBoundary,1);
 			break;*/
-	}
+	}	
 	if(anyUpdation){
 		cout<<"Flags :"<<" ~"<<flag[0]<<" !"<<flag[1]<<" @"<<flag[2]<<" #"<<flag[3]<<
 			         " $"<<flag[4]<<" %"<<flag[5]/*<<" ^"<<flag[6]*/<<"   +"<<endl;
 		anyUpdation = false;
-	}
+		}
 	extern int swich;
 	if(swich==0){
-		
 		//render->renderBoundary();
 		render->renderGrid();
-		render->renderParticles();
+	    	render->renderParticles();
 		render->renderSurfaceBoundary();
 	}
 	else if(swich==1){
-		render->renderMat(sGrid->p,2);
+	  	render->renderMat(sGrid->p,2);
 	}
 	else if(swich==2){
 		render->renderMat(sGrid->distanceLevelSet,2);
@@ -169,7 +261,7 @@ void display(void){
 		render->renderGrid();
 		render->renderVector2D(sGrid->u,sGrid->v); 
 		}
-	
+
 	
 	/*if(flag[0])
 		render->renderBoundary();
@@ -188,8 +280,57 @@ void display(void){
 		render->renderMat(sGrid->isFluidBoundary,1);
 */
 	output1 = ' ';
-	postDisplay();
+	idleFun();
+	// 	postDisplay();
 }
+
+void preDisplay()
+{
+	glViewport ( 0, 0, winSizeX, winSizeY);
+	glMatrixMode (GL_PROJECTION);
+	glLoadIdentity ();
+	glOrtho( 0, zoomFactor, 0, zoomFactor	, 0,1 ); //better to use ortho..
+	glClearColor( 0.0f, 0.0f, 0.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
+}
+
+void idleFun ( void )
+{
+	extern bool isPause ;
+	if(!isPause){
+	struct timeval tt1, tt2;
+	static int it = 0;
+	static struct timeval tt3, tt4;
+	gettimeofday(&tt4, NULL);
+
+	gettimeofday(&tt1, NULL);
+	animate();
+	gettimeofday(&tt2, NULL);
+	int milliSeconds2 = (tt4.tv_sec - tt3.tv_sec) * 1000 + (tt4.tv_usec - tt3.tv_usec)/1000;
+	cout<<"Render Time Frame   "<<it-1<<" : "<<milliSeconds2<<"ms"<<endl;
+
+	int milliSeconds = (tt2.tv_sec - tt1.tv_sec) * 1000 + (tt2.tv_usec - tt1.tv_usec)/1000;
+	cout<<"Iteration "<<it<<" : "<<milliSeconds<<"ms"<<endl<<endl;
+	gettimeofday(&tt3, NULL);
+	
+	it++;
+
+	////////////////////////////////////////////////////////////////
+	//glutSetWindow ( winId );
+	//glutPostRedisplay ( );
+	}
+}
+
+/**/
+void postDisplay()
+{
+  GLFWwindow* window=glfwGetCurrentContext();
+   glfwSwapBuffers(window);
+}
+
+
+/******** UPTO HERE********************/
+/*
 void idleFun ( void )
 {
 	extern bool isPause ;
@@ -214,7 +355,7 @@ void idleFun ( void )
 	glutPostRedisplay ( );
 	}
 }
-
+*
 void reshape (int w, int h)
 {
    glutSetWindow(winId);
@@ -222,22 +363,22 @@ void reshape (int w, int h)
    winSizeX = w;
    winSizeY = h;
 }
-
+/*
 void preDisplay()
 {
-	glViewport ( 0, 0, winSizeX, winSizeY);
-	glMatrixMode (GL_PROJECTION);
-	glLoadIdentity ();
-	glOrtho( 0, zoomFactor, 0, zoomFactor	, 0,1 ); //better to use ortho..
-	glClearColor( 0.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
+ glViewport ( 0, 0, winSizeX, winSizeY);
+ glMatrixMode (GL_PROJECTION);
+ glLoadIdentity ();
+ glOrtho( 0, zoomFactor, 0, zoomFactor	, 0,1 ); //better to use ortho..
+ glClearColor( 0.0f, 0.0f, 0.0f, 1.0f);
+ glClear(GL_COLOR_BUFFER_BIT);
 }
 
 void postDisplay()
 {
    glutSwapBuffers();
 }
-
+*
 void openGlutWindow(char* windowName)
 {
    glutInitDisplayMode ( GLUT_RGBA | GLUT_DOUBLE );
@@ -252,9 +393,11 @@ void openGlutWindow(char* windowName)
    glClear(GL_COLOR_BUFFER_BIT);
    glutSwapBuffers();
    glutDisplayFunc(display);
-//   glutSpecialFunc(&SpecialKeyPressed);
+   //   glutSpecialFunc(&SpecialKeyPressed);
    glutKeyboardFunc(&KeyPressed);
    glutReshapeFunc(reshape);
    glutIdleFunc(idleFun);
 }
+*/
+
 

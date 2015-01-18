@@ -3,7 +3,7 @@ CC=g++
 GL_INC_DIR=/usr/include
 GL_LIB_DIR=/usr/lib
 
-GL_LIBS=-L$(GL_LIB_DIR) -lglut -lGLU -lGL -lm -lpthread
+GL_LIBS=-L$(GL_LIB_DIR) -lGLU -lGL -lGLEW -lm -lpthread -lglfw3 -lX11 -lXxf86vm -lXrandr -lXi -lpthread
 
 CFLAGS = -Wall 
 OPTFLAG = -O3
@@ -11,7 +11,7 @@ OPTFLAG = -O3
 
 .PHONY:clean
 
-OBJ = main.o GridStag.o  FluidSim.o  Particles.o Printer.o  Renderer.o
+OBJ = main.o GridStag.o  FluidSim.o  Particles.o Printer.o  Renderer.o gl_framework.o
 LIBS = $(GL_LIBS)
 
 all: $(OBJ) liquid2D
@@ -30,8 +30,9 @@ clean:
 GridStag.o : GridStag.h ParameterFLAGS.hpp
 Renderer.o : Renderer.h
 FluidSim.o : FluidSim.h ./pcgsolver/*.h ParameterFLAGS.hpp 
-main.o : main.h commonData.h ParameterFLAGS.hpp keyboard.h
+main.o : main.h commonData.h ParameterFLAGS.hpp keyboard.h gl_framework.h
 Printer.o : Printer.h
 Particles.o : Particles.h
+gl_framework.o: gl_framework.h
 
 

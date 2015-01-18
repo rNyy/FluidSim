@@ -55,6 +55,7 @@ int swich = 0;
 void idleFun();
 void initMain();
 void initParticles();
+/*
 void KeyPressed (unsigned char key, int x, int y)
 {
 if (key==27)
@@ -200,10 +201,13 @@ case '4':
 //
 //
 //
-}
-}
+
 //
 //
+/*
+}
+}
+*/
 /*
 float xRotated, yRotated, zRotated;
 void SpecialKeyPressed(int key, int x, int y)

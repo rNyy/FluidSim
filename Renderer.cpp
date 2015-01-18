@@ -11,7 +11,7 @@ extern double zoomFactor;
 
 void Renderer :: init(GridStag* grid)
 {
-	this->sGrid = grid;
+        this->sGrid = grid;
 	int nX = (this->sGrid)->nX;
 	int nY = (this->sGrid)->nY;
 
@@ -23,6 +23,7 @@ void Renderer :: init(GridStag* grid)
 
 	stepX = (gridRTX - gridLBX)/nX;
 	stepY = (gridRTX - gridLBX)/nY;
+	
 }
 void Renderer :: updateGrid(GridStag* grid)
 {
@@ -43,23 +44,25 @@ void Renderer :: initRenderer()
 
 void Renderer :: renderGrid()
 {
-	int nX = (this->sGrid)->nX;
+  
+      	int nX = (this->sGrid)->nX;
 	int nY = (this->sGrid)->nY;
 
-	//cout<<"\nInRenderer:displayGrid"<<nX<< " " <<nY<<" "<<gridLBX<<" "<<gridLBY;
+	//	std::cout<<"\nInRenderer:displayGrid"<<nX<< " " <<nY<<" "<<gridLBX<<" "<<gridLBY;
 	double gridLBX = this->gridLBX+stepX;
 	double gridLBY = this->gridLBY+stepY;
 	int fillFlag = 0;
 #ifndef  DL
 	for (int i=1;i< nX-1;i++){
 		for (int j=1;j< nY-1;j++){
-			glColor3f(1,0,0);//set fill color..used if fillFlag=true
-			drawSquare(gridLBX,gridLBY,gridLBX+stepX,gridLBY+stepY,fillFlag);//1: Filled grid,0:wire Frame
-			gridLBX+=stepX;
+		  
+		  glColor3f(1,0,0);//set fill color..used if fillFlag=true
+		  drawSquare(gridLBX,gridLBY,gridLBX+stepX,gridLBY+stepY,fillFlag);//1: Filled grid,0:wire Frame
+		  gridLBX+=stepX;
 		}
 		gridLBY += stepY;
 		gridLBX = this->gridLBX+stepX;
-	}
+   	}
 #endif
 #ifdef DL
 /*
