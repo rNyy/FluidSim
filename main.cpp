@@ -103,8 +103,6 @@ int main (int argc, char *argv[])
       return -1;
     }
 
-  int i=pthread_getconcurrency();
-
   //! Make the window's context current 
   glfwMakeContextCurrent(window);
 
@@ -132,14 +130,15 @@ int main (int argc, char *argv[])
 
 
   initMain();
+  int i=pthread_getconcurrency();
 
   while (glfwWindowShouldClose(window) == 0)
     {
-      glClearColor( 0.0f, 0.0f, 0.0f, 1.0f);
-      glClear(GL_COLOR_BUFFER_BIT);
-      //      glfwSwapBuffers(window);
-      //      glClear(GL_COLOR_BUFFER_BIT);
-      //      glfwSwapBuffers(window);
+      // glClearColor( 0.0f, 0.0f, 0.0f, 1.0f);
+      // glClear(GL_COLOR_BUFFER_BIT);
+      // glfwSwapBuffers(window);
+      // glClear(GL_COLOR_BUFFER_BIT);
+      // glfwSwapBuffers(window);
       // Render here
       renderGL();
 
@@ -204,7 +203,7 @@ void renderGL(void){
 
 	char output1 = ' ';
 	bool anyUpdation = false;
-	glColor3f(1,0,0);
+        
 
 	switch(output1){
 		case'~':
@@ -243,7 +242,7 @@ void renderGL(void){
 		}
 	extern int swich;
 	if(swich==0){
-		//render->renderBoundary();
+		render->renderBoundary();
 		render->renderGrid();
 	    	render->renderParticles();
 		render->renderSurfaceBoundary();
@@ -289,7 +288,7 @@ void preDisplay()
 	glLoadIdentity ();
 	glOrtho( 0, zoomFactor, 0, zoomFactor	, 0,1 ); //better to use ortho..
 	glClearColor( 0.0f, 0.0f, 0.0f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
+	//	glClear(GL_COLOR_BUFFER_BIT);
 }
 
 void idleFun ( void )
@@ -313,7 +312,7 @@ void idleFun ( void )
 	
 	it++;
 
-	////////////////////////////////////////////////////////////////
+	////////////FIGURE OUT THESE FUNCTIONS///////////////////////
 	//glutSetWindow ( winId );
 	//glutPostRedisplay ( );
 	}
