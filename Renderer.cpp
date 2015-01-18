@@ -187,11 +187,12 @@ void Renderer :: drawSquare(double lbx,double lby,double rtx,double rty,int fill
 		//if(fillFlag == LIQUID  )//uncomment to render only liquid..
 
 		{
-			glBegin(GL_QUADS);
+			glBegin(GL_TRIANGLE_STRIP);
 			glVertex2f(lbx, lby);
 			glVertex2f(lbx, rty);
-			glVertex2f(rtx, rty);
 			glVertex2f(rtx, lby);
+			glVertex2f(rtx, rty);
+		
 			glEnd();
 		}
 		if(!fillFlag)
@@ -214,11 +215,11 @@ void Renderer :: drawSquareFilled(int li, int lj, int ri, int rj, double fillVal
 	double rty = gridLBY + stepY*rj;
 
 	glColor3f(fillVal,0,0);
-	glBegin(GL_QUADS);
+	glBegin(GL_TRIANGLE_STRIP);
 	glVertex2f(lbx, lby);
 	glVertex2f(lbx, rty);
-	glVertex2f(rtx, rty);
 	glVertex2f(rtx, lby);
+	glVertex2f(rtx, rty);
 	glEnd();
 }
 void Renderer :: drawSquareFilled(double lbx,double lby,double rtx,double rty,double fillVal)
@@ -235,11 +236,11 @@ void Renderer :: drawSquareFilled(double lbx,double lby,double rtx,double rty,do
 					
 				
 
-			glBegin(GL_QUADS);
+			glBegin(GL_TRIANGLE_STRIP);
 			glVertex2f(lbx, lby);
 			glVertex2f(lbx, rty);
-			glVertex2f(rtx, rty);
 			glVertex2f(rtx, lby);
+			glVertex2f(rtx, rty);
 			glEnd();
 		}
 		if(0)
@@ -434,7 +435,7 @@ void Renderer :: renderDensity(matrix<double> mat)
 	{
 		for (unsigned int j=0;j < mat.size2()-1;j++)
 		{
-			glBegin ( GL_QUADS );
+			glBegin ( GL_TRIANGLE_STRIP );
 				d00 = mat(i,j);
 				d01 = mat(i,j+1);
 				d10 = mat(i+1,j);
@@ -442,8 +443,8 @@ void Renderer :: renderDensity(matrix<double> mat)
 
 				glColor3f ( d00, d00, d00 ); glVertex2f ( gridLBX, gridLBY );
 				glColor3f ( d10, d10, d10 ); glVertex2f ( gridLBX, gridLBY+stepY );
-				glColor3f ( d11, d11, d11 ); glVertex2f ( gridLBX+stepX, gridLBY+stepY );
 				glColor3f ( d01, d01, d01 ); glVertex2f (  gridLBX+stepX, gridLBY );
+				glColor3f ( d11, d11, d11 ); glVertex2f ( gridLBX+stepX, gridLBY+stepY );
 			gridLBX+=stepX;
 		glEnd();
 		}
@@ -488,7 +489,7 @@ void Renderer :: renderDen2D_Stam()
 	//h = 1.0f;// /sGrid->nX;
 	h = sGrid->dx;
 
-	glBegin ( GL_QUADS );
+	glBegin ( GL_TRIANGLE_STRIP );
 /* here last grid row and col is not rendered..*/
 		for ( i=0 ; i< sGrid->nY - 1 ; i++ ) { //ignored the right/top boundary
 			y = (i+0.5f)*h;
@@ -501,8 +502,8 @@ void Renderer :: renderDen2D_Stam()
 
 				glColor3f ( d00, d00, d00 ); glVertex2f ( x, y );
 				glColor3f ( d10, d10, d10 ); glVertex2f ( x, y+h );
-				glColor3f ( d11, d11, d11 ); glVertex2f ( x+h, y+h );
 				glColor3f ( d01, d01, d01 ); glVertex2f (  x+h, y );
+				glColor3f ( d11, d11, d11 ); glVertex2f ( x+h, y+h );
 			}
 		}
 	glEnd ();
