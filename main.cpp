@@ -186,11 +186,11 @@ int main (int argc, char *argv[])
   // Loop until the user closes the window
   while (glfwWindowShouldClose(window) == 0)
     {
-      //glClearColor( 0.0f, 0.0f, 0.0f, 1.0f);
-      //glClear(GL_COLOR_BUFFER_BIT);
+      glClearColor( 0.0f, 0.0f, 0.0f, 1.0f);
+      // glClear(GL_COLOR_BUFFER_BIT);
       glfwSwapBuffers(window);
       //glClear(GL_COLOR_BUFFER_BIT);
-      //glfwSwapBuffers(window);
+      //      glfwSwapBuffers(window);
 
       // Render here
       renderGL();
@@ -213,6 +213,7 @@ int main (int argc, char *argv[])
 
 
 void renderGL(void){
+  GLFWwindow *window=glfwGetCurrentContext();
  	preDisplay();
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glUseProgram(shaderProgram);
@@ -260,10 +261,10 @@ void renderGL(void){
 		}
 	extern int swich;
 	if(swich==0){
-	  //	render->renderBoundary();
-	   render->renderGrid();
-	  //	render->renderParticles();
-	  //   render->renderSurfaceBoundary();
+	  // render->renderBoundary();
+	  render->renderGrid();
+	  render->renderParticles();
+	  //render->renderSurfaceBoundary();
 	}
 	else if(swich==1){
 	  	render->renderMat(sGrid->p,2);
@@ -297,6 +298,7 @@ void renderGL(void){
 	output1 = ' ';
 	idleFun();
 	// 	postDisplay();
+	  glfwSwapBuffers(window);
 }
 
 void preDisplay()
