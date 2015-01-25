@@ -1,4 +1,4 @@
-
+#include "gl_framework.h"
 #include "Renderer.h"
 #include "Printer.h"
 
@@ -51,6 +51,7 @@ void Renderer :: renderGrid()
 	double gridLBY = this->gridLBY+stepY;
 	int fillFlag = 0;
 #ifndef  DL
+	//BY DEFAULT DL IS NOT ENABLED ________FIND OUT MORE
 	for (int i=1;i< nX-1;i++){
 		for (int j=1;j< nY-1;j++){
 			glColor3f(1,0,0);//set fill color..used if fillFlag=true
@@ -60,43 +61,11 @@ void Renderer :: renderGrid()
 		gridLBY += stepY;
 		gridLBX = this->gridLBX+stepX;
 	}
+	std::cout<<"2\n";
 #endif
 #ifdef DL
-/*
-nX = nY=32;
-GLfloat* vertices = new GLfloat[nX*nY*2*4];
-	int index=0;
-	for (int i=1;i< nX-1;i++){
-		for (int j=1;j< nY-1;j++){
-			vertices[index++] = gridLBX;// + stepX*(j-1) ;
-			vertices[index++] = gridLBY;// + stepY*(i-1) ;
-
-			vertices[index++] = gridLBX;// + stepX*(j-1) ;
-			vertices[index++] = gridLBY + stepY;// *(i) ;
-
-			vertices[index++] = gridLBX + stepX;// *(j) ;
-			vertices[index++] = gridLBY + stepY;// *(i) ;
-
-			vertices[index++] = gridLBX + stepX;// *(j) ;
-			vertices[index++] = gridLBY;// + stepY *(i-1) ;
-
-		}
-		gridLBY += stepY;
-		gridLBX = this->gridLBX+stepX;
-	}
-
-
-    glColor3f(.2,.2,.2); //unComment to show grid lines
-			
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(2, GL_FLOAT, 0, vertices);
-	glDrawArrays(GL_POINTS, 0, index);
-	glDisableClientState(GL_VERTEX_ARRAY);
-
-*/
-
 //nX = nY=64;
-GLfloat* vertices = new GLfloat[(nX)*2*2*2];
+float* vertices = new float[(nX)*2*2*2];
 	int index=0;
 gridLBX = gridLBY = 0;
 	for (int i=0;i< nX;i++){
@@ -122,13 +91,36 @@ gridLBX = gridLBY = 0;
 	
 
     glColor3f(.2,.2,.2); //unComment to show grid lines
-			
+    /*			
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glVertexPointer(2, GL_FLOAT, 0, vertices);
 	glDrawArrays(GL_LINES, 0, index);
 	glDisableClientState(GL_VERTEX_ARRAY);
+    */
+    
+    // Create a Vector Buffer Object that will store the vertices on video memory
+    GLuint vbo,vao;
+    glGenVertexArrays (1, &vao);
+    //Set it as the current array to be used by binding it
+    glBindVertexArray (vao);
+    
+    glGenBuffers(1, &vbo);
+  
+    // Allocate space and upload the data from CPU to GPU
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    //glBindVertexArray(vao);
+    //Enable the vertex attribute
+    glEnableVertexAttribArray (0);
+    glEnableClientState(GL_VERTEX_ARRAY);
+    // glVertexPointer(2, GL_FLOAT, 0, vertices);
+    glVertexAttribPointer (0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+    glDrawArrays(GL_LINES,0, index);
+    std::cout<<"1\n";
+    glBindVertexArray(0);
+    glDisableClientState(GL_VERTEX_ARRAY);
+    //delete vertices; 
 
-	delete vertices; 
 #endif
 
 	//renderBoundary();
@@ -187,12 +179,11 @@ void Renderer :: drawSquare(double lbx,double lby,double rtx,double rty,int fill
 		//if(fillFlag == LIQUID  )//uncomment to render only liquid..
 
 		{
-			glBegin(GL_TRIANGLE_STRIP);
+			glBegin(GL_QUADS);
 			glVertex2f(lbx, lby);
 			glVertex2f(lbx, rty);
-			glVertex2f(rtx, lby);
 			glVertex2f(rtx, rty);
-		
+			glVertex2f(rtx, lby);
 			glEnd();
 		}
 		if(!fillFlag)
@@ -215,11 +206,11 @@ void Renderer :: drawSquareFilled(int li, int lj, int ri, int rj, double fillVal
 	double rty = gridLBY + stepY*rj;
 
 	glColor3f(fillVal,0,0);
-	glBegin(GL_TRIANGLE_STRIP);
+	glBegin(GL_QUADS);
 	glVertex2f(lbx, lby);
 	glVertex2f(lbx, rty);
-	glVertex2f(rtx, lby);
 	glVertex2f(rtx, rty);
+	glVertex2f(rtx, lby);
 	glEnd();
 }
 void Renderer :: drawSquareFilled(double lbx,double lby,double rtx,double rty,double fillVal)
@@ -236,11 +227,11 @@ void Renderer :: drawSquareFilled(double lbx,double lby,double rtx,double rty,do
 					
 				
 
-			glBegin(GL_TRIANGLE_STRIP);
+			glBegin(GL_QUADS);
 			glVertex2f(lbx, lby);
 			glVertex2f(lbx, rty);
-			glVertex2f(rtx, lby);
 			glVertex2f(rtx, rty);
+			glVertex2f(rtx, lby);
 			glEnd();
 		}
 		if(0)
@@ -273,7 +264,7 @@ void Renderer :: renderMat(matrix<double> mat,int mode)
 					fillFlag = 1;
 				else
 					fillFlag = 0;
-*/
+				*/
 
 				//drawSquare(gridLBX,gridLBY,gridLBX+stepX,gridLBY+stepY,fillFlag);//1: Filled grid,0:wire Frame
 				//drawSquare(gridLBX,gridLBY,gridLBX+stepX,gridLBY+stepY,(int)mat(i,j));//1: Filled grid,0:wire Frame
@@ -435,7 +426,7 @@ void Renderer :: renderDensity(matrix<double> mat)
 	{
 		for (unsigned int j=0;j < mat.size2()-1;j++)
 		{
-			glBegin ( GL_TRIANGLE_STRIP );
+			glBegin ( GL_QUADS );
 				d00 = mat(i,j);
 				d01 = mat(i,j+1);
 				d10 = mat(i+1,j);
@@ -443,8 +434,8 @@ void Renderer :: renderDensity(matrix<double> mat)
 
 				glColor3f ( d00, d00, d00 ); glVertex2f ( gridLBX, gridLBY );
 				glColor3f ( d10, d10, d10 ); glVertex2f ( gridLBX, gridLBY+stepY );
-				glColor3f ( d01, d01, d01 ); glVertex2f (  gridLBX+stepX, gridLBY );
 				glColor3f ( d11, d11, d11 ); glVertex2f ( gridLBX+stepX, gridLBY+stepY );
+				glColor3f ( d01, d01, d01 ); glVertex2f (  gridLBX+stepX, gridLBY );
 			gridLBX+=stepX;
 		glEnd();
 		}
@@ -489,7 +480,7 @@ void Renderer :: renderDen2D_Stam()
 	//h = 1.0f;// /sGrid->nX;
 	h = sGrid->dx;
 
-	glBegin ( GL_TRIANGLE_STRIP );
+	glBegin ( GL_QUADS );
 /* here last grid row and col is not rendered..*/
 		for ( i=0 ; i< sGrid->nY - 1 ; i++ ) { //ignored the right/top boundary
 			y = (i+0.5f)*h;
@@ -502,8 +493,8 @@ void Renderer :: renderDen2D_Stam()
 
 				glColor3f ( d00, d00, d00 ); glVertex2f ( x, y );
 				glColor3f ( d10, d10, d10 ); glVertex2f ( x, y+h );
-				glColor3f ( d01, d01, d01 ); glVertex2f (  x+h, y );
 				glColor3f ( d11, d11, d11 ); glVertex2f ( x+h, y+h );
+				glColor3f ( d01, d01, d01 ); glVertex2f (  x+h, y );
 			}
 		}
 	glEnd ();
@@ -512,43 +503,66 @@ void Renderer :: renderDen2D_Stam()
 
 void Renderer :: renderParticles()
 {
-//cout<<"renderPar"<<endl;
-	glColor3f(0.3,0.3,0.3);
-    //renderGrid();
-    //glColor3f(0.2,0.2,0.9);
-    //renderBoundary();
+  //cout<<"renderPar"<<endl;
+  glColor3f(0.3,0.3,0.3);
+  //renderGrid();
+  //glColor3f(0.2,0.2,0.9);
+  //renderBoundary();
 #ifdef DL
-     GLfloat *vertices	;
-	vertices = new GLfloat[sGrid->fluidParticles.size()*2];
-    #pragma omp parallel for	
-    for (unsigned i = 0; i < sGrid->fluidParticles.size() ; i++ ){
-	vertices[2*i] =   sGrid->fluidParticles.at(i)->x ;
-	vertices[2*i+1] =   sGrid->fluidParticles.at(i)->y ;
+  // GLfloat *vertices	;
+  // vertices = new GLfloat[sGrid->fluidParticles.size()*2];
+  float vertices[GRID_SIZE*GRID_SIZE*2];
+  
+#pragma omp parallel for	
+  for (unsigned i = 0; i < sGrid->fluidParticles.size() ; i++ ){
+      vertices[2*i] =   sGrid->fluidParticles.at(i)->x ;
+      vertices[2*i+1] =   sGrid->fluidParticles.at(i)->y ;
+    
     }
 
-    glColor3f(0,0,0.6);
-    glPointSize(4);
-
-	
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(2, GL_FLOAT, 0, vertices);
-
-// draw a cube
-	glDrawArrays(GL_POINTS, 0, sGrid->fluidParticles.size());
-
-// deactivate vertex arrays after drawing
-	glDisableClientState(GL_VERTEX_ARRAY);
+  ///////////
+  // float vertices[]={0.0,0.0,0.1,0.1,-0.5,-0.5,-0.2,-0.2,0.5,0.1};
+  glColor3f(0,0,0.6);
+  glPointSize(4);
+    
+  // Create a Vector Buffer Object that will store the vertices on video memory
+  GLuint vbo,vao;
+  glGenVertexArrays (1, &vao);
+  //Set it as the current array to be used by binding it
+  glBindVertexArray (vao);
+  
+  glGenBuffers(1, &vbo);
+  
+  // Allocate space and upload the data from CPU to GPU
+  glBindBuffer(GL_ARRAY_BUFFER, vbo);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+  //glBindVertexArray(vao);
+  //Enable the vertex attribute
+   glEnableVertexAttribArray (0);
+   //glDrawArrays(GL_TRIANGLES, 0, 12);
+   glEnableClientState(GL_VERTEX_ARRAY);
+   //glVertexPointer(0, GL_FLOAT, 0, vertices);
+   glVertexAttribPointer (0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+   glDrawArrays(GL_POINTS,0, sGrid->fluidParticles.size());
+   glBindVertexArray(0);
+   glDisableClientState(GL_VERTEX_ARRAY);
+ 
 #endif
+  
 #ifndef DL
- 	for (unsigned i = 0; i < sGrid->fluidParticles.size() ; i++ ){
-	glPointSize(4);
-	glBegin(GL_POINTS);
-		//glColor3f(1,i*0.001,0);
-		glColor3f(0,0,0.6);
-		glVertex2d(sGrid->fluidParticles.at(i)->x,sGrid->fluidParticles.at(i)->y);
-	glEnd();
-
-	}
+  GLfloat *vertices	;
+  vertices = new GLfloat[sGrid->fluidParticles.size()*2];
+  for (unsigned i = 0; i < sGrid->fluidParticles.size() ; i++ ){
+    /* glPointSize(4);
+    glBegin(GL_POINTS);
+    //glColor3f(1,i*0.001,0);
+    glColor3f(0,0,0.6);
+    glVertex2d(sGrid->fluidParticles.at(i)->x,sGrid->fluidParticles.at(i)->y);
+    glEnd();*/
+    
+    vertices[i++]=sGrid->fluidParticles.at(i)->x;
+    vertices[i]=sGrid->fluidParticles.at(i)->y;
+   }
 #endif
 }
 
@@ -556,13 +570,15 @@ void Renderer :: renderParticle(double x, double y,double R,double G,double B,in
 {
 
  	glPointSize(psize);
-	glBegin(GL_POINTS);
-	glColor3f(R,G,B);
+ 	glBegin(GL_POINTS);
+		glColor3f(R,G,B);
 		glVertex2d(x,y);
-	glEnd();
+		glEnd();
 }
 
 void Renderer :: renderSurfaceBoundary() {
+  double *vertices=new double[sGrid->nX*sGrid->nY*2];
+  unsigned no=0;
     for (int i = sGrid->nX - 1; i > 0; i--)
         for (int j = 0; j < sGrid->nY-1; j++) {
         	int state=0;
@@ -588,87 +604,142 @@ void Renderer :: renderSurfaceBoundary() {
                 double incfactor = stepX / 2.0;
                 x+=incfactor;
                 y+=incfactor;
-
                 glColor3f(1.0, 0.0, 0.0);
-                glBegin(GL_LINES);
-                switch (state) {
+		switch (state) {
                     case 1:
-                        glVertex2f(x, y - incfactor);
-                        glVertex2f(x + incfactor, y);
-                        break;
+		      // glVertex2f(x, y - incfactor);
+                      //  glVertex2f(x + incfactor, y);
+		      vertices[no++]=x;          vertices[no++]=y-incfactor;
+		      vertices[no++]=x+incfactor; vertices[no++]=y;
+		      break;
 
                     case 2:
-                        glVertex2f(x + incfactor, y);
-                        glVertex2f(x + 2 * incfactor, y - incfactor);
-                        break;
+		      //glVertex2f(x + incfactor, y);
+		      //glVertex2f(x + 2 * incfactor, y - incfactor);
+                      vertices[no++]=x+incfactor; vertices[no++]=y;
+		      vertices[no++]=x=2*incfactor; vertices[no++]=y-incfactor;
+		      break;
 
                     case 3:
-                        glVertex2f(x, y - incfactor);
-                        glVertex2f(x + 2 * incfactor, y - incfactor);
-                        break;
+                      //  glVertex2f(x, y - incfactor);
+                      //  glVertex2f(x + 2 * incfactor, y - incfactor);
+		      vertices[no++]=x;             vertices[no++]=y-incfactor;
+		      vertices[no++]=x+2*incfactor;  vertices[no++]=y-incfactor;
+		      break;
 
                     case 4:
-                        glVertex2f(x, y - incfactor);
-                        glVertex2f(x + incfactor, y - 2 * incfactor);
-                        break;
+		      // glVertex2f(x, y - incfactor);
+		      // glVertex2f(x + incfactor, y - 2 * incfactor);
+		       vertices[no++]=x;          vertices[no++]=y-incfactor;
+		       vertices[no++]=x+incfactor;  vertices[no++]=y-2*incfactor;
+		      break;
 
                     case 5:
-                        glVertex2f(x + incfactor, y);
-                        glVertex2f(x + incfactor, y - 2 * incfactor);
-                        break;
+		      // glVertex2f(x + incfactor, y);
+		      // glVertex2f(x + incfactor, y - 2 * incfactor);
+		      vertices[no++]=x+incfactor;  vertices[no++]=y;
+		      vertices[no++]=x+incfactor;  vertices[no++]=y-2*incfactor;
+		      break;
 
                     case 6:
-                        glVertex2f(x, y - incfactor);
-                        glVertex2f(x + incfactor, y);
-                        glVertex2f(x + incfactor, y - 2 * incfactor);
-                        glVertex2f(x + 2 * incfactor, y - incfactor);
-                        break;
+		      // glVertex2f(x, y - incfactor);
+		      // glVertex2f(x + incfactor, y);
+		      // glVertex2f(x + incfactor, y - 2 * incfactor);
+		      // glVertex2f(x + 2 * incfactor, y - incfactor);
+		      vertices[no++]=x;  vertices[no++]=y-incfactor;
+		      vertices[no++]=x+incfactor;  vertices[no++]=y;
+		      vertices[no++]=x+incfactor;  vertices[no++]=y-2*incfactor;
+		      vertices[no++]=x+2*incfactor;  vertices[no++]=y-incfactor;
+		      break;
 
                     case 7:
-                        glVertex2f(x + incfactor, y - 2 * incfactor);
-                        glVertex2f(x + 2 * incfactor, y - incfactor);
-                        break;
+		      // glVertex2f(x + incfactor, y - 2 * incfactor);
+		      // glVertex2f(x + 2 * incfactor, y - incfactor);
+		      vertices[no++]=x+incfactor;  vertices[no++]=y-2*incfactor;
+		      vertices[no++]=x+2*incfactor;  vertices[no++]=y-incfactor;
+		      break;
 
                     case 8:
-                        glVertex2f(x + incfactor, y - 2 * incfactor);
-                        glVertex2f(x + 2 * incfactor, y - incfactor);
-                        break;
+		      // glVertex2f(x + incfactor, y - 2 * incfactor);
+                      // glVertex2f(x + 2 * incfactor, y - incfactor);
+		      vertices[no++]=x+incfactor;  vertices[no++]=y-2*incfactor;
+		      vertices[no++]=x+2*incfactor;  vertices[no++]=y-incfactor;
+		      break;
 
                     case 9:
-                        glVertex2f(x + incfactor, y);
-                        glVertex2f(x + 2 * incfactor, y - incfactor);
-                        glVertex2f(x, y - incfactor);
-                        glVertex2f(x + incfactor, y - 2 * incfactor);
-                        break;
+                      // glVertex2f(x + incfactor, y);
+                      // glVertex2f(x + 2 * incfactor, y - incfactor);
+                      // glVertex2f(x, y - incfactor);
+		      // glVertex2f(x + incfactor, y - 2 * incfactor);
+		      vertices[no++]=x+incfactor;  vertices[no++]=y;
+		      vertices[no++]=x+2*incfactor;  vertices[no++]=y-incfactor;
+		      vertices[no++]=x;  vertices[no++]=y-incfactor;
+		      vertices[no++]=x+incfactor;  vertices[no++]=y-2*incfactor;
+		      break;
 
                     case 10:
-                        glVertex2f(x + incfactor, y);
-                        glVertex2f(x + incfactor, y - 2 * incfactor);
-                        break;
+		      // glVertex2f(x + incfactor, y);
+		      // glVertex2f(x + incfactor, y - 2 * incfactor);
+                      vertices[no++]=x+incfactor;  vertices[no++]=y;
+		      vertices[no++]=x+incfactor;  vertices[no++]=y-2*incfactor;
+		      break;
 
                     case 11:
-                        glVertex2f(x, y - incfactor);
-                        glVertex2f(x + incfactor, y - 2 * incfactor);
-                        break;
+		      // glVertex2f(x, y - incfactor);
+		      // glVertex2f(x + incfactor, y - 2 * incfactor);
+		      vertices[no++]=x;  vertices[no++]=y-incfactor;
+		      vertices[no++]=x+incfactor;  vertices[no++]=y-2*incfactor;
+		      break;
 
                     case 12:
-                        glVertex2f(x, y - incfactor);
-                        glVertex2f(x + 2 * incfactor, y - incfactor);
-                        break;
+		      // glVertex2f(x, y - incfactor);
+		      // glVertex2f(x + 2 * incfactor, y - incfactor);
+		      vertices[no++]=x;  vertices[no++]=y-incfactor;
+		      vertices[no++]=x+2*incfactor;  vertices[no++]=y-incfactor;
+		      break;
 
                     case 13:
-                        glVertex2f(x + incfactor, y);
-                        glVertex2f(x + 2 * incfactor, y - incfactor);
-                        break;
+		      // glVertex2f(x + incfactor, y);
+		      // glVertex2f(x + 2 * incfactor, y - incfactor);
+                      vertices[no++]=x+incfactor;  vertices[no++]=y;
+		      vertices[no++]=x+2*incfactor;  vertices[no++]=y-incfactor;
+		      break;
 
                     case 14:
-                        glVertex2f(x, y - incfactor);
-                        glVertex2f(x + incfactor, y);
-                        break;
+		      // glVertex2f(x, y - incfactor);
+		      // glVertex2f(x + incfactor, y);
+		      vertices[no++]=x;  vertices[no++]=y-incfactor;
+		      vertices[no++]=x+incfactor;  vertices[no++]=y;
+		      break;
                 }
-              glEnd();
-
         }
+
+    glColor3f(0,0,0.6);
+    glPointSize(4);
+    
+    // Create a Vector Buffer Object that will store the vertices on video memory
+  GLuint vbo,vao;
+  glGenVertexArrays (1, &vao);
+  //Set it as the current array to be used by binding it
+  glBindVertexArray (vao);
+  
+  glGenBuffers(1, &vbo);
+  
+  // Allocate space and upload the data from CPU to GPU
+  glBindBuffer(GL_ARRAY_BUFFER, vbo);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+  //glBindVertexArray(vao);
+  //Enable the vertex attribute
+   glEnableVertexAttribArray (0);
+   glEnableClientState(GL_VERTEX_ARRAY);
+   //glVertexPointer(0, GL_FLOAT, 0, vertices);
+   glVertexAttribPointer (0, 2, GL_DOUBLE, GL_FALSE, 0, NULL);
+   glDrawArrays(GL_LINES,0, no/2);
+   glDisableClientState(GL_VERTEX_ARRAY);
+   glBindVertexArray(0);
+   
+   //   delete vertices; 
+     
 }
 
 

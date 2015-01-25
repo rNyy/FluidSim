@@ -1,4 +1,5 @@
 #include "gl_framework.h"
+#include "shader_util.hpp"
 #include "commonData.h"
 #include "keyboard.h"
 #include "main.h"
@@ -73,6 +74,47 @@ void idleFun();
 
 #ifdef WG
 
+
+GLuint shaderProgram;
+GLuint vbo, vao;
+
+void initShadersGL(void)
+{
+  std::string vertex_shader_file("simple_vs.glsl");
+  std::string fragment_shader_file("simple_fs.glsl");
+
+  std::vector<GLuint> shaderList;
+  shaderList.push_back(csX75::LoadShaderGL(GL_VERTEX_SHADER, vertex_shader_file));
+  shaderList.push_back(csX75::LoadShaderGL(GL_FRAGMENT_SHADER, fragment_shader_file));
+
+  shaderProgram = csX75::CreateProgramGL(shaderList);
+  
+}
+
+void initVertexBufferGL(void)
+{
+  float points[]={};
+    
+  //Ask GL for a Vertex Buffer Object (vbo)
+   glGenBuffers (1, &vbo);
+  //Set it as the current buffer to be used by binding it
+  glBindBuffer (GL_ARRAY_BUFFER, vbo);
+  //Copy the points into the current buffer - 9 float values, start pointer and sttic data
+  //glBufferData (GL_ARRAY_BUFFER, 3 * sizeof (float), points, GL_STATIC_DRAW);
+  //Ask GL for a Vertex Attribute Object (vao)
+   glGenVertexArrays (1, &vao);
+  //Set it as the current array to be used by binding it
+   glBindVertexArray (vao);
+  //Enable the vertex attribute
+   glEnableVertexAttribArray (0);
+  //This the layout of our first vertex buffer
+  //"0" means define the layout for attribute number 0. "3" means that the variables are vec3 made from every 3 floats 
+   glVertexAttribPointer (0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+   glBindVertexArray(0);
+}
+
+
+
 ///////////////////////////GLFW CODE/////////////////////////////////////
 /**/
 int main (int argc, char *argv[]) 
@@ -94,6 +136,15 @@ int main (int argc, char *argv[])
   //! Initialize GLFW
   if (!glfwInit())
     return -1;
+  
+  //We want OpenGL 4.0
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4); 
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+  //This is for MacOSX - can be omitted otherwise
+  //  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); 
+  //We don't want the old OpenGL 
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); 
+
 
   //! Create a windowed mode window and its OpenGL context
   window = glfwCreateWindow(winSizeX, winSizeY, " Liquid_Simulator-LevelSet+Surface", NULL, NULL);
@@ -107,7 +158,8 @@ int main (int argc, char *argv[])
   glfwMakeContextCurrent(window);
 
   //Initialize GLEW
- 
+  //Turn this on to get Shader based OpenGL
+  glewExperimental = GL_TRUE;
   GLenum err = glewInit();
   if (GLEW_OK != err)
     {
@@ -125,25 +177,26 @@ int main (int argc, char *argv[])
 
   //Initialize GL state
   csX75::initGL();
-  // openglutwindow eqvt
-  // Loop until the user closes the window
-
-
+  initShadersGL();
+  // initVertexBufferGL();
+ 
   initMain();
   int i=pthread_getconcurrency();
-
+  
+  // Loop until the user closes the window
   while (glfwWindowShouldClose(window) == 0)
     {
-      // glClearColor( 0.0f, 0.0f, 0.0f, 1.0f);
-      // glClear(GL_COLOR_BUFFER_BIT);
-      // glfwSwapBuffers(window);
-      // glClear(GL_COLOR_BUFFER_BIT);
-      // glfwSwapBuffers(window);
+      //glClearColor( 0.0f, 0.0f, 0.0f, 1.0f);
+      //glClear(GL_COLOR_BUFFER_BIT);
+      glfwSwapBuffers(window);
+      //glClear(GL_COLOR_BUFFER_BIT);
+      //glfwSwapBuffers(window);
+
       // Render here
       renderGL();
 
       // Swap front and back buffers
-      glfwSwapBuffers(window);
+      //glfwSwapBuffers(window);
       
       // Poll for and process events
       glfwPollEvents();
@@ -156,49 +209,14 @@ int main (int argc, char *argv[])
 /**/
 /////////////////////////////////////////////////////////////////////////
 
-
-/******************** GLUT CODE ********************************************/
-/*
-int main(int argc, char** argv)
-{
-  grid_size = GRID_SIZE;
-  nthreads = NTHREADS;	
-  if(argc>=2){
-    nthreads = atoi(argv[1]);
-    grid_size = atoi(argv[2]);
-  }
-  omp_set_num_threads(nthreads);
-  
-   /*#pragma omp parallel
-   {
-		cout<<"Hello"<<endl;
-   }*/
-   //int i=0;
-   /*matrix<double > temp;
-   temp.resize(10,10);
-   #pragma omp parallel for
-   for(int i=0;i<10;i++)
-		for(int j=0;j<10;j++)
-			cout<<temp(i,j);
-			/**
-  
-   glutInit(&argc, argv);
-   initMain ();
-   int i=pthread_getconcurrency();
-
-   char windowName[]="   Liquid_Simulator-LevelSet+Surface" ;
-   openGlutWindow(windowName);
-
-   glutMainLoop();
-   
-   return 0; 
-   }*/
 #endif
-	
+
+
 void renderGL(void){
  	preDisplay();
-
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glUseProgram(shaderProgram);
+	glBindVertexArray (vao);
  	static bool flag[10]={false,false,false,false,false,true};//boundary grid particles surface vector mat
 
 	char output1 = ' ';
@@ -242,10 +260,10 @@ void renderGL(void){
 		}
 	extern int swich;
 	if(swich==0){
-		render->renderBoundary();
-		render->renderGrid();
-	    	render->renderParticles();
-		render->renderSurfaceBoundary();
+	  //	render->renderBoundary();
+	   render->renderGrid();
+	  //	render->renderParticles();
+	  //   render->renderSurfaceBoundary();
 	}
 	else if(swich==1){
 	  	render->renderMat(sGrid->p,2);
@@ -317,7 +335,6 @@ void idleFun ( void )
 	//glutPostRedisplay ( );
 	}
 }
-
 /**/
 void postDisplay()
 {

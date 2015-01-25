@@ -11,7 +11,7 @@ OPTFLAG = -O3
 
 .PHONY:clean
 
-OBJ = main.o GridStag.o  FluidSim.o  Particles.o Printer.o  Renderer.o gl_framework.o
+OBJ = main.o GridStag.o  FluidSim.o  Particles.o Printer.o  Renderer.o gl_framework.o shader_util.o
 LIBS = $(GL_LIBS)
 
 all: $(OBJ) liquid2D
@@ -34,5 +34,6 @@ main.o : main.h commonData.h ParameterFLAGS.hpp keyboard.h gl_framework.h
 Printer.o : Printer.h
 Particles.o : Particles.h
 gl_framework.o: gl_framework.h
+shader_util.o: shader_util.hpp
 
 
