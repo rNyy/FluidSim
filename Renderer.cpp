@@ -115,7 +115,7 @@ void Renderer :: renderGrid()
   //"0" means define the layout for attribute number 0. "3" means that the variables are vec3 made from every 3 floats 
   glEnableClientState(GL_VERTEX_ARRAY);
   glVertexAttribPointer (0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
-  glDrawArrays(GL_LINES, 0, index/2);
+    glDrawArrays(GL_LINES, 0, index/2);
   glBindVertexArray(0);
   glDisableClientState(GL_VERTEX_ARRAY);
   

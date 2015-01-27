@@ -306,7 +306,8 @@ void preDisplay()
 	glViewport ( 0, 0, winSizeX, winSizeY);
 	glMatrixMode (GL_PROJECTION);
 	glLoadIdentity ();
-	glOrtho( 0, zoomFactor, 0, zoomFactor	, 0,1 ); //better to use ortho..
+	//	glOrtho( 0, zoomFactor, 0, zoomFactor	, 0,1 ); //better to use ortho..
+	glOrtho( 0, zoomFactor, 0, zoomFactor, 0,1 );
 	glClearColor( 0.0f, 0.0f, 0.0f, 1.0f);
 	//	glClear(GL_COLOR_BUFFER_BIT);
 }
