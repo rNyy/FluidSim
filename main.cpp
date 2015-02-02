@@ -170,7 +170,7 @@ int main (int argc, char *argv[])
   //Keyboard Callback
   glfwSetKeyCallback(window, csX75::key_callback);
   //Framebuffer resize callback
-  glfwSetFramebufferSizeCallback(window, csX75::framebuffer_size_callback);
+   glfwSetFramebufferSizeCallback(window, csX75::framebuffer_size_callback);
 
   // Ensure we can capture the escape key being pressed below
   glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
@@ -182,21 +182,22 @@ int main (int argc, char *argv[])
  
   initMain();
   int i=pthread_getconcurrency();
-  
+   glClearColor( 0.0f, 0.0f, 0.0f, 1.0f);
+   glClear(GL_COLOR_BUFFER_BIT);
+   glfwSwapBuffers(window);
+   glClear(GL_COLOR_BUFFER_BIT);
+   glfwSwapBuffers(window);
+
+
   // Loop until the user closes the window
   while (glfwWindowShouldClose(window) == 0)
     {
-      glClearColor( 0.0f, 0.0f, 0.0f, 1.0f);
-      // glClear(GL_COLOR_BUFFER_BIT);
-      glfwSwapBuffers(window);
-      //glClear(GL_COLOR_BUFFER_BIT);
-      //      glfwSwapBuffers(window);
-
+     
       // Render here
       renderGL();
 
       // Swap front and back buffers
-      //glfwSwapBuffers(window);
+      //   glfwSwapBuffers(window);
       
       // Poll for and process events
       glfwPollEvents();
@@ -214,207 +215,125 @@ int main (int argc, char *argv[])
 
 void renderGL(void){
   GLFWwindow *window=glfwGetCurrentContext();
- 	preDisplay();
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glUseProgram(shaderProgram);
-	glBindVertexArray (vao);
- 	static bool flag[10]={false,false,false,false,false,true};//boundary grid particles surface vector mat
-
-	char output1 = ' ';
-	bool anyUpdation = false;
-        
-
-	switch(output1){
-		case'~':
-			flag[0] = !flag[0];
-			//render->renderBoundary
-			break;
-		case '!':
-			flag[1] = !flag[1];
-			//render->renderGrid();
-			break;
-		case '@':
-			flag[2] = !flag[2];
-			//render->renderParticles();
-			break;
-		case '#':
-			flag[3] = !flag[3];
-			//render->renderSurfaceBoundary();
-			break;
-		case '$':
-			flag[4] = !flag[4];
+  
+  //  glViewport ( -(float)winSizeX/winSizeY, -(float)winSizeX/winSizeY, /*width, height*/winSizeX, winSizeY);
+  preDisplay();
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glUseProgram(shaderProgram);
+  glBindVertexArray (vao);
+  static bool flag[10]={false,false,false,false,false,true};//boundary grid particles surface vector mat
+  
+  char output1 = ' ';
+  bool anyUpdation = false;
+  
+  
+  switch(output1){
+  case'~':
+    flag[0] = !flag[0];
+    //render->renderBoundary
+    break;
+  case '!':
+    flag[1] = !flag[1];
+    //render->renderGrid();
+    break;
+  case '@':
+    flag[2] = !flag[2];
+    //render->renderParticles();
+    break;
+  case '#':
+    flag[3] = !flag[3];
+    //render->renderSurfaceBoundary();
+    break;
+  case '$':
+    flag[4] = !flag[4];
 			//render->renderVector2D(sGrid->u,sGrid->v);
-			break;
-		case '%':
-			flag[5] = !flag[5];
-			//render->renderMat(sGrid->distanceLevelSet,1);
-			break;
-		/*case '^':
-			flag[6] = !flag[6];
-			//render->renderMat(sGrid->isFluidBoundary,1);
-			break;*/
-	}	
-	if(anyUpdation){
-		cout<<"Flags :"<<" ~"<<flag[0]<<" !"<<flag[1]<<" @"<<flag[2]<<" #"<<flag[3]<<
-			         " $"<<flag[4]<<" %"<<flag[5]/*<<" ^"<<flag[6]*/<<"   +"<<endl;
-		anyUpdation = false;
+    break;
+  case '%':
+    flag[5] = !flag[5];
+    //render->renderMat(sGrid->distanceLevelSet,1);
+    break;
+    /*case '^':
+      flag[6] = !flag[6];
+      //render->renderMat(sGrid->isFluidBoundary,1);
+      break;*/
+  }	
+  if(anyUpdation){
+    cout<<"Flags :"<<" ~"<<flag[0]<<" !"<<flag[1]<<" @"<<flag[2]<<" #"<<flag[3]<<
+      " $"<<flag[4]<<" %"<<flag[5]/*<<" ^"<<flag[6]*/<<"   +"<<endl;
+    anyUpdation = false;
+  }
+  extern int swich;
+  if(swich==0){
+    // render->renderBoundary();
+    render->renderGrid();
+    render->renderParticles();
+    
+    // render->renderSurfaceBoundary();
+	}
+  else if(swich==1){
+    render->renderMat(sGrid->p,2);
+  }
+  else if(swich==2){
+    render->renderMat(sGrid->distanceLevelSet,2);
+  }
+  else if(swich==3){
+    render->renderBoundary();
+    render->renderGrid();
+    render->renderVector2D(sGrid->u,sGrid->v); 
 		}
-	extern int swich;
-	if(swich==0){
-	  // render->renderBoundary();
-	  render->renderGrid();
-	  render->renderParticles();
-	  //render->renderSurfaceBoundary();
-	}
-	else if(swich==1){
-	  	render->renderMat(sGrid->p,2);
-	}
-	else if(swich==2){
-		render->renderMat(sGrid->distanceLevelSet,2);
-	}
-	else if(swich==3){
-		render->renderBoundary();
-		render->renderGrid();
-		render->renderVector2D(sGrid->u,sGrid->v); 
-		}
-
-	
-	/*if(flag[0])
-		render->renderBoundary();
-	if(flag[1])
-		render->renderGrid();
-	if(flag[2])
-		render->renderParticles();
-	if(flag[3])
-		render->renderSurfaceBoundary();
-	if(flag[4])
-		render->renderVector2D(sGrid->u,sGrid->v); */
-	//if(flag[5])
-		//render->renderMat(sGrid->distanceLevelSet,2);
-		//render->renderMat(sGrid->p,2);
-	/*if(flag[6])
-		render->renderMat(sGrid->isFluidBoundary,1);
-*/
-	output1 = ' ';
-	idleFun();
-	// 	postDisplay();
-	  glfwSwapBuffers(window);
+  
+  output1 = ' ';
+  idleFun();
+  postDisplay();
+  //glfwSwapBuffers(window);
 }
 
 void preDisplay()
 {
-	glViewport ( 0, 0, winSizeX, winSizeY);
-	glMatrixMode (GL_PROJECTION);
-	glLoadIdentity ();
-	//	glOrtho( 0, zoomFactor, 0, zoomFactor	, 0,1 ); //better to use ortho..
-	glOrtho( 0, zoomFactor, 0, zoomFactor, 0,1 );
-	glClearColor( 0.0f, 0.0f, 0.0f, 1.0f);
-	//	glClear(GL_COLOR_BUFFER_BIT);
+  GLFWwindow *window = glfwGetCurrentContext();
+  int width, height;
+  glfwGetFramebufferSize(window, &width, &height);
+  // glViewport ( 0, 0, /*width, height*/winSizeX, winSizeY);
+
+  glViewport ( -600, -600, /*width, height*/winSizeX*2, winSizeY*2);
+  glMatrixMode (GL_PROJECTION);
+  glLoadIdentity ();
+  glOrtho(0, zoomFactor, 0, zoomFactor	, 0,1 ); //better to use ortho..  
+  //gluOrtho2D(1,zoomFactor,1,zoomFactor);
+  //glOrtho( 0, zoomFactor, 0, zoomFactor, 0,1 );
+  glClearColor( 0.0f, 0.0f, 0.0f, 1.0f);
+  glClear(GL_COLOR_BUFFER_BIT);
 }
 
 void idleFun ( void )
 {
-	extern bool isPause ;
-	if(!isPause){
-	struct timeval tt1, tt2;
-	static int it = 0;
+  extern bool isPause ;
+  if(!isPause){
+    struct timeval tt1, tt2;
+    static int it = 0;
 	static struct timeval tt3, tt4;
 	gettimeofday(&tt4, NULL);
-
+	
 	gettimeofday(&tt1, NULL);
 	animate();
 	gettimeofday(&tt2, NULL);
 	int milliSeconds2 = (tt4.tv_sec - tt3.tv_sec) * 1000 + (tt4.tv_usec - tt3.tv_usec)/1000;
 	cout<<"Render Time Frame   "<<it-1<<" : "<<milliSeconds2<<"ms"<<endl;
-
+	
 	int milliSeconds = (tt2.tv_sec - tt1.tv_sec) * 1000 + (tt2.tv_usec - tt1.tv_usec)/1000;
 	cout<<"Iteration "<<it<<" : "<<milliSeconds<<"ms"<<endl<<endl;
 	gettimeofday(&tt3, NULL);
 	
 	it++;
-
+	
 	////////////FIGURE OUT THESE FUNCTIONS///////////////////////
 	//glutSetWindow ( winId );
 	//glutPostRedisplay ( );
-	}
+  }
 }
 /**/
 void postDisplay()
 {
   GLFWwindow* window=glfwGetCurrentContext();
-   glfwSwapBuffers(window);
+  glfwSwapBuffers(window);
 }
-
-
-/******** UPTO HERE********************/
-/*
-void idleFun ( void )
-{
-	extern bool isPause ;
-	if(!isPause){
-	struct timeval tt1, tt2;
-	static int it = 0;
-	static struct timeval tt3, tt4;
-	gettimeofday(&tt4, NULL);
-
-	gettimeofday(&tt1, NULL);
-	animate();
-	gettimeofday(&tt2, NULL);
-	int milliSeconds2 = (tt4.tv_sec - tt3.tv_sec) * 1000 + (tt4.tv_usec - tt3.tv_usec)/1000;
-	cout<<"Rander Time Frame   "<<it-1<<" : "<<milliSeconds2<<"ms"<<endl;
-
-	int milliSeconds = (tt2.tv_sec - tt1.tv_sec) * 1000 + (tt2.tv_usec - tt1.tv_usec)/1000;
-	cout<<"Iteration "<<it<<" : "<<milliSeconds<<"ms"<<endl<<endl;
-	gettimeofday(&tt3, NULL);
-	
-	it++;
-	glutSetWindow ( winId );
-	glutPostRedisplay ( );
-	}
-}
-*
-void reshape (int w, int h)
-{
-   glutSetWindow(winId);
-   glutReshapeWindow(w ,h);
-   winSizeX = w;
-   winSizeY = h;
-}
-/*
-void preDisplay()
-{
- glViewport ( 0, 0, winSizeX, winSizeY);
- glMatrixMode (GL_PROJECTION);
- glLoadIdentity ();
- glOrtho( 0, zoomFactor, 0, zoomFactor	, 0,1 ); //better to use ortho..
- glClearColor( 0.0f, 0.0f, 0.0f, 1.0f);
- glClear(GL_COLOR_BUFFER_BIT);
-}
-
-void postDisplay()
-{
-   glutSwapBuffers();
-}
-*
-void openGlutWindow(char* windowName)
-{
-   glutInitDisplayMode ( GLUT_RGBA | GLUT_DOUBLE );
-   glutInitWindowSize (winSizeX, winSizeY);
-   glutInitWindowPosition (570, 100);
-
-   winId = glutCreateWindow (&windowName[2]);
-
-   glClearColor( 0.0f, 0.0f, 0.0f, 1.0f);
-   glClear(GL_COLOR_BUFFER_BIT);
-   glutSwapBuffers();
-   glClear(GL_COLOR_BUFFER_BIT);
-   glutSwapBuffers();
-   glutDisplayFunc(display);
-   //   glutSpecialFunc(&SpecialKeyPressed);
-   glutKeyboardFunc(&KeyPressed);
-   glutReshapeFunc(reshape);
-   glutIdleFunc(idleFun);
-}
-*/
-
-

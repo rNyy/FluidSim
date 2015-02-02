@@ -99,7 +99,25 @@ void Renderer :: renderGrid()
   //	glDisableClientState(GL_VERTEX_ARRAY);
 	
   ////////////////////////////////////////////////////////////////
-  //Ask GL for a Vertex Buffer Object (vbo)
+  float g_color_buffer_data[]={0.2,0.2,0.2,1.0};
+  
+  GLuint colorbuffer;
+  glGenBuffers(1, &colorbuffer);
+  glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(g_color_buffer_data), g_color_buffer_data, GL_STATIC_DRAW);
+    // 2nd attribute buffer : colors
+  glEnableVertexAttribArray(1);
+  glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
+  glVertexAttribPointer(
+			1,                                // attribute. No particular reason for 1, but must match the layout in the shader.
+			3,                                // size
+			GL_FLOAT,                         // type
+			GL_FALSE,                         // normalized?
+			0,                                // stride
+			(void*)0                          // array buffer offset
+			);
+
+ //Ask GL for a Vertex Buffer Object (vbo)
   glGenBuffers (2, &vbo);
   //Set it as the current buffer to be used by binding it
   glBindBuffer (GL_ARRAY_BUFFER, vbo);
@@ -504,6 +522,8 @@ void Renderer :: renderDen2D_Stam()
 
 void Renderer :: renderParticles()
 {
+  int a;
+  // std::cin>>a;
   //cout<<"renderPar"<<endl;
   glColor3f(0.3,0.3,0.3);
   //renderGrid();
@@ -512,14 +532,14 @@ void Renderer :: renderParticles()
 #ifdef DL
   // GLfloat *vertices	;
   // vertices = new GLfloat[sGrid->fluidParticles.size()*2];
-  float vertices[GRID_SIZE*GRID_SIZE*2];
-  
+  float vertices[GRID_SIZE*GRID_SIZE*31];
+
 #pragma omp parallel for	
   for (unsigned i = 0; i < sGrid->fluidParticles.size() ; i++ ){
       vertices[2*i] =   sGrid->fluidParticles.at(i)->x ;
       vertices[2*i+1] =   sGrid->fluidParticles.at(i)->y ;
   }
-
+  
   ///////////
   // float vertices[]={0.0,0.0,0.1,0.1,-0.5,-0.5,-0.2,-0.2,0.5,0.1};
   glColor3f(0,0,0.6);
