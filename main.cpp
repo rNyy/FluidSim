@@ -267,8 +267,7 @@ void renderGL(void){
     // render->renderBoundary();
     render->renderGrid();
     render->renderParticles();
-    
-    // render->renderSurfaceBoundary();
+    render->renderSurfaceBoundary();
 	}
   else if(swich==1){
     render->renderMat(sGrid->p,2);

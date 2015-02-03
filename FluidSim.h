@@ -52,6 +52,7 @@ public:
 
 	double cfl();
 	void advect2DSelf(matrix<double>& q, double,matrix<double> &u,matrix<double> &v,int ); //passing u and v compenents...
+	void advect2DSelf_RK2(matrix<double>& q, double,matrix<double> &u,matrix<double> &v,int ); //passing u and v compenents...
 	matrix<double> addForce(matrix<double> dest, double dt, matrix<double> src) ;
 	void initFluidBody_Helper(int bx,int tx, int by,int ty,matrix<double>& mat,double val);
 	void initFluidBody(int ); //set markers...add density/particles in region

@@ -101,21 +101,10 @@ void Renderer :: renderGrid()
   ////////////////////////////////////////////////////////////////
   float g_color_buffer_data[]={0.2,0.2,0.2,1.0};
   
-  GLuint colorbuffer;
-  glGenBuffers(1, &colorbuffer);
-  glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
   glBufferData(GL_ARRAY_BUFFER, sizeof(g_color_buffer_data), g_color_buffer_data, GL_STATIC_DRAW);
     // 2nd attribute buffer : colors
   glEnableVertexAttribArray(1);
-  glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
-  glVertexAttribPointer(
-			1,                                // attribute. No particular reason for 1, but must match the layout in the shader.
-			3,                                // size
-			GL_FLOAT,                         // type
-			GL_FALSE,                         // normalized?
-			0,                                // stride
-			(void*)0                          // array buffer offset
-			);
+  // glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
 
  //Ask GL for a Vertex Buffer Object (vbo)
   glGenBuffers (2, &vbo);
@@ -133,7 +122,7 @@ void Renderer :: renderGrid()
   //"0" means define the layout for attribute number 0. "3" means that the variables are vec3 made from every 3 floats 
   glEnableClientState(GL_VERTEX_ARRAY);
   glVertexAttribPointer (0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
-    glDrawArrays(GL_LINES, 0, index/2);
+  glDrawArrays(GL_LINES, 0, index/2);
   glBindVertexArray(0);
   glDisableClientState(GL_VERTEX_ARRAY);
   

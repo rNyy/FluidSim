@@ -154,6 +154,7 @@ void FluidSim :: advectParticles(std::vector <Particles*> & plist, matrix<double
 
 void FluidSim :: advect2DSelf(matrix<double>& q, double dt, matrix<double> &u, matrix<double> &v,int component)//keep
 {
+  //TRY1 - using MacCormack Method
   //proper advection - RK2
   //	matrix<double>& temp=q;
   //q.clear();
@@ -191,6 +192,49 @@ void FluidSim :: advect2DSelf(matrix<double>& q, double dt, matrix<double> &u, m
   }
   
 }
+
+/*** Old Semi Lagrangian Method of 2D advection using RK2***** */
+void FluidSim :: advect2DSelf_RK2(matrix<double>& q, double dt, matrix<double> &u, matrix<double> &v,int component)//keep
+{
+  //proper advection - RK2
+  //	matrix<double>& temp=q;
+  //q.clear();
+  int nX = this->sGrid->nX;
+  int nY = this->sGrid->nY;
+  double dx = sGrid->dx;
+  //dt*=nX;
+  double x,y, posx, posy;
+  if(component==1){ //Horizontal Component
+#pragma omp parallel for private(x, y, posx, posy)
+    for(int i=1;i<=nY-2;i++)
+      {	for(int j=1;j<=nX-1;j++){
+	  x = (j)*dx;
+	  y = (i+0.5)*dx;
+	  posx = x/dx;
+	  posy = y/dx;
+	  RK2(posx,posy, u, v,-dt);
+	  q(i,j) = getVelInterpolated(posx,posy-0.5, u);
+	  
+	}
+      }	
+  }
+  else{ //component=2 i.e. Vertical component
+    //#pragma omp parallel for
+#pragma omp parallel for private(x, y, posx, posy)
+    for(int i=1;i<=nY-1;i++)
+      for(int j=1;j<=nX-2;j++){
+	x = (j+0.5)*dx;
+	y = (i)*dx;
+	posx = x/dx;
+	posy = y/dx;
+	RK2(posx,posy, u, v,-dt);
+	q(i,j) = getVelInterpolated(posx-0.5,posy, v);
+      }
+  }
+  
+}
+
+/********************************************************/
 
 void FluidSim :: addGravity(matrix<double> &ua, double dt) //keep
 {
@@ -537,7 +581,7 @@ void FluidSim::solvePressureBridson(float dt) { //keep
   int iterations;
   bool success = solver.solve(matrix1, rhs, pressure, tolerance, iterations);
   if(!success) {
-    cout<<"WARNING: Pressure solve failed!************************************************\n";
+    cout<<"WARNING: Pressure solve failed!************************\n";
   }
   else{
 #pragma omp parallel for
