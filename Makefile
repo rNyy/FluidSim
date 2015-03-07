@@ -5,7 +5,7 @@ GL_LIB_DIR=/usr/lib
 
 GL_LIBS=-L$(GL_LIB_DIR) -lGLU -lGL -lGLEW -lm -lpthread -lglfw3 -lX11 -lXxf86vm -lXrandr -lXi -lpthread
 
-CFLAGS = -Wall 
+CFLAGS = -Wall -Wno-unused-variable -Wno-comment
 OPTFLAG = -O3
 # -dNDEBUG
 

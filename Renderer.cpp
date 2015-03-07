@@ -213,6 +213,7 @@ void Renderer :: drawSquareFilled(int li, int lj, int ri, int rj, double fillVal
   double rtx = gridLBX + stepX*ri;
   double rty = gridLBY + stepY*rj;
   
+  /*  
   glColor3f(fillVal,0,0);
   glBegin(GL_QUADS);
   glVertex2f(lbx, lby);
@@ -220,6 +221,33 @@ void Renderer :: drawSquareFilled(int li, int lj, int ri, int rj, double fillVal
   glVertex2f(rtx, rty);
   glVertex2f(rtx, lby);
   glEnd();
+  */
+  double vertices[8]= {lbx, rty,
+		       lbx, lby,
+		       rtx, rty,
+		       rtx, lby};
+     {
+	GLuint vbo,vao;
+	glGenVertexArrays (1, &vao);
+	//Set it as the current array to be used by binding it
+	glBindVertexArray (vao);
+	glGenBuffers(1, &vbo);
+	
+	// Allocate space and upload the data from CPU to GPU
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	//glBindVertexArray(vao);
+	//Enable the vertex attribute
+	glEnableVertexAttribArray (0);
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glVertexAttribPointer (0, 2, GL_DOUBLE, GL_FALSE, 0, NULL);
+	glDrawArrays(GL_TRIANGLE_STRIP,0, 4);
+	glDisableClientState(GL_VERTEX_ARRAY);
+	glBindVertexArray(0);
+	
+      }
+   
+
 }
 void Renderer :: drawSquareFilled(double lbx,double lby,double rtx,double rty,double fillVal)
 {
@@ -227,21 +255,108 @@ void Renderer :: drawSquareFilled(double lbx,double lby,double rtx,double rty,do
   {
     //std::cout<<fillVal<<std::endl;
     //glColor3f(1,1,1);
+    ;
+    GLfloat colors[12];// = {      0.5f,  0.5f,  0.5f,      };
     
     if(fillVal==-1.0)
-      glColor3f(0,0,0-fillVal);
+      {
+	// glColor3f(0,0,0-fillVal);
+	colors[0]=0.0;
+	colors[1]=0.0;
+	colors[2]=0-fillVal;
+	colors[3]=0.0;
+	colors[4]=0.0;
+	colors[5]=0-fillVal;
+	colors[6]=0.0;
+	colors[7]=0.0;
+	colors[8]=0-fillVal;
+	colors[9]=0.0;
+	colors[10]=0.0;
+	colors[11]=0-fillVal;
+      }
     if(fillVal>=0)
-      glColor3f(fillVal/6,fillVal/6,fillVal/6);
-    
-    
-    
-    glBegin(GL_QUADS);
+      {
+	//glColor3f(fillVal/6,fillVal/6,fillVal/6);
+	colors[0]=fillVal/6;
+	colors[1]=fillVal/6;
+	colors[2]=fillVal/6;
+	colors[3]=fillVal/6;
+	colors[4]=fillVal/6;
+	colors[5]=fillVal/6;
+	colors[6]=fillVal/6;
+	colors[7]=fillVal/6;
+	colors[8]=fillVal/6;
+	colors[9]=fillVal/6;
+	colors[10]=fillVal/6;
+	colors[11]=fillVal/6;
+	
+      }
+    double vertices[8]= {lbx, rty,
+			 lbx, lby,
+			 rtx, rty,
+			 rtx, lby};
+    /* glBegin(GL_QUADS);
     glVertex2f(lbx, lby);
     glVertex2f(lbx, rty);
     glVertex2f(rtx, rty);
     glVertex2f(rtx, lby);
-    glEnd();
+    glEnd();*/
+
+    ///////////////////
+    // Create a Vector Buffer Object that will store the vertices on video memory
+
+      {
+	GLuint vbo,vao;
+	glGenVertexArrays (1, &vao);
+	//Set it as the current array to be used by binding it
+	glBindVertexArray (vao);
+	glGenBuffers(1, &vbo);
+	//Vertices
+	// Allocate space and upload the data from CPU to GPU
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+		
+	//COLORS STUFF
+	GLuint colorbuffer;
+	glGenBuffers(1, &colorbuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_STATIC_DRAW);
+	glBindVertexArray(vao);
+	//Enable the vertex attribute
+	glEnableVertexAttribArray (0);
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glVertexAttribPointer (0, 2, GL_DOUBLE, GL_FALSE, 0, NULL);
+
+	
+	// 2nd attribute buffer : colors
+	glEnableVertexAttribArray(1);
+	glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
+	glVertexAttribPointer(
+			      1,                                // attribute. No particular reason for 1, but must match the layout in the shader.
+			      3,                                // size
+			      GL_FLOAT,                         // type
+			      GL_FALSE,                         // normalized?
+			      0,                                // stride
+			      NULL                          // array buffer offset
+			      );
+	
+
+	
+	
+	glDrawArrays(GL_TRIANGLE_STRIP,0, 4);
+	//	glDisableVertexAttribArray(0);
+	//	glDisableVertexAttribArray(1);
+	glDisableClientState(GL_VERTEX_ARRAY);
+	glBindVertexArray(0);
+	
+      }
+
+    ///////////////////
+    
+   
   }
+  
   if(0)
     {
       glColor3f(.2,.2,.2); //unComment to show grid lines
@@ -251,7 +366,7 @@ void Renderer :: drawSquareFilled(double lbx,double lby,double rtx,double rty,do
       glVertex2f(rtx, rty);
       glVertex2f(rtx, lby);
       glEnd();
-    }
+      }
 }
 
 void Renderer :: renderMat(matrix<double> mat,int mode)
@@ -344,6 +459,7 @@ void Renderer :: renderVector2D(matrix<double> u, matrix<double> v)
   
   maxv = MAX(maxv,getMax(vel_mag));
   //maxv = getMax(vel_mag) ;
+
   
   for (int i=0;i<nX;i++)
     {
@@ -523,6 +639,7 @@ void Renderer :: renderParticles()
   // vertices = new GLfloat[sGrid->fluidParticles.size()*2];
   float vertices[GRID_SIZE*GRID_SIZE*31];
 
+  float colors[]={0,0,0.6};
 #pragma omp parallel for	
   for (unsigned i = 0; i < sGrid->fluidParticles.size() ; i++ ){
       vertices[2*i] =   sGrid->fluidParticles.at(i)->x ;
@@ -539,24 +656,39 @@ void Renderer :: renderParticles()
   glGenVertexArrays (1, &vao);
   //Set it as the current array to be used by binding it
   glBindVertexArray (vao);
-  
   glGenBuffers(1, &vbo);
   
   // Allocate space and upload the data from CPU to GPU
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
   glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
   //glBindVertexArray(vao);
+  
+  //COLORS STUFF
+  GLuint colorbuffer;
+  glGenBuffers(1, &colorbuffer);
+  glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_STATIC_DRAW);
+  
+  glBindVertexArray(vao);
+
   //Enable the vertex attribute
    glEnableVertexAttribArray (0);
    //glDrawArrays(GL_TRIANGLES, 0, 12);
    glEnableClientState(GL_VERTEX_ARRAY);
+   glBindBuffer(GL_ARRAY_BUFFER, vbo);
    //glVertexPointer(0, GL_FLOAT, 0, vertices);
    glVertexAttribPointer (0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+   
+   // 2nd attribute buffer : colors
+   glEnableVertexAttribArray(1);
+   glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
+   glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE, 0, NULL);
+	
+   
    glDrawArrays(GL_POINTS,0, sGrid->fluidParticles.size());
    glDisableClientState(GL_VERTEX_ARRAY);
    glBindVertexArray(0);
    // delete vertices;
-
 
 #endif
   
@@ -587,8 +719,10 @@ void Renderer :: renderParticle(double x, double y,double R,double G,double B,in
 }
 
 void Renderer :: renderSurfaceBoundary() {
-  float *vertices=new float[sGrid->nX*sGrid->nY*2];
+ 
   unsigned no=0;
+  float *vertices=new float[sGrid->nX*sGrid->nY*2];
+   
   for (int i = sGrid->nX - 1; i > 0; i--)
     for (int j = 0; j < sGrid->nY-1; j++) {
       int state=0;
@@ -754,37 +888,14 @@ void Renderer :: renderSurfaceBoundary() {
 	vertices[no++]=y;
 	break;
       }
+      
     }
   
   glColor3f(0,0,0.6);
   glPointSize(4);
   GLuint vbo,vao;
-  /*
   
-  glGenBuffers(3, &vbo);
-  
-  // Allocate space and upload the data from CPU to GPU
-  glBindBuffer(GL_ARRAY_BUFFER, vbo);
-  glBufferData(GL_ARRAY_BUFFER, no*sizeof(float), vertices, GL_STATIC_DRAW);
-  glGenVertexArrays (3, &vao);
-  //Set it as the current array to be used by binding it
-  glBindVertexArray (vao);
-  
-  //glBindVertexArray(vao);
-  //Enable the vertex attribute
-  glEnableVertexAttribArray (0);
-  glEnableClientState(GL_VERTEX_ARRAY);
-   //glVertexPointer(0, GL_FLOAT, 0, vertices);
-   glVertexAttribPointer (0, 2, GL_DOUBLE, GL_FALSE, 0, NULL);
-   glDrawArrays(GL_LINES,0, (no/2));
-   glBindVertexArray(0);
-   glDisableClientState(GL_VERTEX_ARRAY);
-   
-   delete vertices; 
-   */
-
-////////////////////////////////////////////////////////////////
-    //Ask GL for a Vertex Buffer Object (vbo)
+  //Ask GL for a Vertex Buffer Object (vbo)
   glGenBuffers (3, &vbo);
   //Set it as the current buffer to be used by binding it
   glBindBuffer (GL_ARRAY_BUFFER, vbo);
@@ -806,8 +917,8 @@ void Renderer :: renderSurfaceBoundary() {
   
 
   ////////////////////////////////////////////////////////////////
-  delete vertices; 
-  
+      delete vertices; 
+ 
   
 // */
    ////////////////////////////////////////////////////////////////

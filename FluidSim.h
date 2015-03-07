@@ -53,6 +53,11 @@ public:
 	double cfl();
 	void advect2DSelf(matrix<double>& q, double,matrix<double> &u,matrix<double> &v,int ); //passing u and v compenents...
 	void advect2DSelf_RK2(matrix<double>& q, double,matrix<double> &u,matrix<double> &v,int ); //passing u and v compenents...
+	void advect2DSelf_mac(matrix<double>& q, double,matrix<double> &u,matrix<double> &v,int ); //passing u and v compenents...
+	///////////////////////////////////////
+	void advect2DBoth(matrix<double>& q,matrix<double>&r,double,matrix<double> &u,matrix<double> &v,int component); // Doing both components at the same call
+
+	
 	matrix<double> addForce(matrix<double> dest, double dt, matrix<double> src) ;
 	void initFluidBody_Helper(int bx,int tx, int by,int ty,matrix<double>& mat,double val);
 	void initFluidBody(int ); //set markers...add density/particles in region
@@ -74,6 +79,7 @@ public:
 	std::vector<double> pressure;
 
 	void RK2(double &posx, double &posy,matrix<double> &u, matrix<double> &v, double dt);
+	void RK2_FWD(double &posx, double &posy,matrix<double> &u, matrix<double> &v, double dt);
 	void setValidVelocity(int val);
 	void addViscosity(double,double) ;
 	matrix<double> addVisc_Helper(matrix<double>, double, double , int );

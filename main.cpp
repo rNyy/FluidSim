@@ -53,7 +53,7 @@ void initMain(void)
 {
    sGrid->initGridStag();
    fluidSim->init(sGrid);
-   fluidSim->initFluidBody(fBT);// 2: indicates dam break center
+   fluidSim->initFluidBody(2);// 2: indicates dam break center
    print->init(sGrid);
    render->init(sGrid);
    
@@ -138,12 +138,12 @@ int main (int argc, char *argv[])
     return -1;
   
   //We want OpenGL 4.0
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4); 
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4); 
+   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
   //This is for MacOSX - can be omitted otherwise
-  //  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); 
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); 
   //We don't want the old OpenGL 
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); 
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); 
 
 
   //! Create a windowed mode window and its OpenGL context
@@ -264,15 +264,16 @@ void renderGL(void){
   }
   extern int swich;
   if(swich==0){
-    // render->renderBoundary();
+    render->renderBoundary();
     render->renderGrid();
     render->renderParticles();
-    render->renderSurfaceBoundary();
+    // render->renderSurfaceBoundary();
 	}
   else if(swich==1){
     render->renderMat(sGrid->p,2);
   }
   else if(swich==2){
+    // render->renderGrid();
     render->renderMat(sGrid->distanceLevelSet,2);
   }
   else if(swich==3){
@@ -317,6 +318,25 @@ void idleFun ( void )
 	animate();
 	gettimeofday(&tt2, NULL);
 	int milliSeconds2 = (tt4.tv_sec - tt3.tv_sec) * 1000 + (tt4.tv_usec - tt3.tv_usec)/1000;
+	static int x=0;
+	if(x++ < 1000)
+	  {
+	  
+	    FILE *file=fopen("time_semi_lagrangian.txt","a");
+	    //  FILE *file1=fopen("Vel_v_RK.txt","a");
+	   
+
+	    if (file == NULL)
+	      {
+		printf("ERROR: Cant write Velocities \n");
+		exit(1);
+	      }
+	    fprintf(file,"%d\t%d\n ",it-1,milliSeconds2);
+       
+	    fclose(file);
+	    // fclose(file1);
+	  }
+
 	cout<<"Render Time Frame   "<<it-1<<" : "<<milliSeconds2<<"ms"<<endl;
 	
 	int milliSeconds = (tt2.tv_sec - tt1.tv_sec) * 1000 + (tt2.tv_usec - tt1.tv_usec)/1000;
