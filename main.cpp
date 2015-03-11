@@ -37,7 +37,11 @@ int main(int argc, char** argv)
 		gettimeofday(&tt2, NULL);
 		int milliSeconds = (tt2.tv_sec - tt1.tv_sec) * 1000 + (tt2.tv_usec - tt1.tv_usec)/1000;
 		cout<<"Iteration "<<it<<" : "<<milliSeconds<<"ms"<<endl<<endl;
+
 		it++;
+
+
+		
 	}
 	return 0;
 }
@@ -319,10 +323,17 @@ void idleFun ( void )
 	gettimeofday(&tt2, NULL);
 	int milliSeconds2 = (tt4.tv_sec - tt3.tv_sec) * 1000 + (tt4.tv_usec - tt3.tv_usec)/1000;
 	static int x=0;
-	if(x++ < 1000)
+	cout<<"Render Time Frame   "<<it-1<<" : "<<milliSeconds2<<"ms"<<endl;
+	
+	int milliSeconds = (tt2.tv_sec - tt1.tv_sec) * 1000 + (tt2.tv_usec - tt1.tv_usec)/1000;
+	cout<<"Iteration "<<it<<" : "<<milliSeconds<<"ms"<<endl<<endl;
+	gettimeofday(&tt3, NULL);
+	
+	it++;
+	if(x++ < 1500)
 	  {
 	  
-	    FILE *file=fopen("time_semi_lagrangian.txt","a");
+	    FILE *file=fopen("time_2.txt","w");
 	    //  FILE *file1=fopen("Vel_v_RK.txt","a");
 	   
 
@@ -331,20 +342,13 @@ void idleFun ( void )
 		printf("ERROR: Cant write Velocities \n");
 		exit(1);
 	      }
-	    fprintf(file,"%d\t%d\n ",it-1,milliSeconds2);
+	    fprintf(file,"%d\n",milliSeconds);
        
 	    fclose(file);
 	    // fclose(file1);
 	  }
 
-	cout<<"Render Time Frame   "<<it-1<<" : "<<milliSeconds2<<"ms"<<endl;
-	
-	int milliSeconds = (tt2.tv_sec - tt1.tv_sec) * 1000 + (tt2.tv_usec - tt1.tv_usec)/1000;
-	cout<<"Iteration "<<it<<" : "<<milliSeconds<<"ms"<<endl<<endl;
-	gettimeofday(&tt3, NULL);
-	
-	it++;
-	
+
 	////////////FIGURE OUT THESE FUNCTIONS///////////////////////
 	//glutSetWindow ( winId );
 	//glutPostRedisplay ( );

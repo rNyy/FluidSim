@@ -1,4 +1,4 @@
-/*
+s /*
  * initFluidBody can be changed...
  *
  */
@@ -30,7 +30,7 @@ void  FluidSim :: simulate(double timestep)
 	float cflVal = cfl();
 	gettimeofday(&tt2, NULL);
 	/////////////////////////////////
-	  matrix<double > u = sGrid->u;
+	/*  matrix<double > u = sGrid->u;
 	  matrix<double > v = sGrid->v;
 	static int x=0;
 	if(x++ < 100)
@@ -56,7 +56,7 @@ void  FluidSim :: simulate(double timestep)
 	    fclose(file);
 	    fclose(file1);
 	  }
-
+	*/
 	///////////////////////////////	
 
 
@@ -85,8 +85,9 @@ void  FluidSim :: simulate(double timestep)
 		gettimeofday(&tt1, NULL);
 		matrix<double > u = sGrid->u;
 		matrix<double > v = sGrid->v;
-		advect2DSelf(sGrid->u,dt,u,v,1);
-		advect2DSelf(sGrid->v,dt,u,v,2);
+		//advect2DBoth(sGrid->u,sGrid->v,dt,u,v,1);
+		advect2DSelf_RK2(sGrid->u,dt,u,v,1);
+		advect2DSelf_RK2(sGrid->v,dt,u,v,2);
 		//advect2DBoth(sGrid->u,sGrid->v,dt,u,v,1);
 		//advect2DBoth(sGrid->u,sGrid->v,dt,u,v,2);
 		gettimeofday(&tt2, NULL);
@@ -298,6 +299,7 @@ void FluidSim :: advect2DBoth(matrix<double>& q,matrix<double>& r, double dt, ma
       }
       
 }*/
+/*
 ///////////////////////////////////////
 //    TRY2 - using Maccormack Method //
 void FluidSim :: advect2DBoth(matrix<double>& q,matrix<double>& r, double dt, matrix<double> &u, matrix<double> &v,int component)//keep
@@ -441,7 +443,7 @@ void FluidSim :: advect2DBoth(matrix<double>& q,matrix<double>& r, double dt, ma
 	  }
 	  
 	else
-	{*/
+	{*
 			       
 	x = (j+0.5)*dx;
 	y = (i)*dx;
@@ -454,9 +456,66 @@ void FluidSim :: advect2DBoth(matrix<double>& q,matrix<double>& r, double dt, ma
 
     }
 }
+			       */
+
+void FluidSim :: advect2DBoth(matrix<double>& q,matrix<double>& r, double dt, matrix<double> &u, matrix<double> &v,int component)//keep
+{
+  int nX = this->sGrid->nX;
+  int nY = this->sGrid->nY;
+  double dx = sGrid->dx;
+  //dt*=nX;
+  double x,y, posx, posy;
+  if(component==1){ //Horizontal Component
+    matrix<double > u = sGrid->u;
+    matrix<double > v = sGrid->v;
+    matrix<double > fwd_u=sGrid->u;
+    matrix<double > fwd_v=sGrid->v;
+    matrix<double > bwd_u=sGrid->u;
+    matrix<double > bwd_v=sGrid->v;
+
+    advect2DSelf_fwd(fwd_u,dt,u,v,1);
+    advect2DSelf_fwd(fwd_v,dt,u,v,2);
+
+    advect2DSelf_RK2(bwd_u,dt,fwd_u,fwd_v,1);
+    advect2DSelf_RK2(bwd_v,dt,fwd_u,fwd_v,2);
+
+    // q=bwd_u;
+    // r=bwd_v;
+    advect2DMac(q,fwd_u,bwd_u,u);
+    advect2DMac(r,fwd_v,bwd_v,v);
+    
+    // clampMaccormack(q,bwd_u,u);
+    // clampMaccormack(r,bwd_v,v);
+  }
+  else{
+  }
+	
+}
+
+ void FluidSim::advect2DMac(matrix<double>& nxt,matrix<double>& fwd, matrix<double>& bwd,matrix<double>& curr)
+{
+  double error=0.0;
+  int nX = this->sGrid->nX;
+  int nY = this->sGrid->nY;
+
+  //#pragma omp parallel for private (error)
+  for(int i=1;i<=nY-2;i++)
+    {	for(int j=1;j<=nX-1;j++){
+	error=0.25*(curr(i,j)-bwd(i,j));  //swap bwd and curr
+	nxt(i,j)=fwd(i,j)+1*abs(error);
+
+	if(nxt(i,j) >= max(curr(i,j),nxt(i,j)) || nxt(i,j) <= min(curr(i,j),nxt(i,j)))
+	  nxt(i,j)=fwd(i,j)+0.25*abs(error);
+      }
+    }	
+  
 
 
-
+}
+ void FluidSim::clampMaccormack(matrix<double>& nxt,matrix<double>& bwd,matrix<double>& curr)
+{
+  
+}
 
 
 /*****************************************************************************************/
@@ -500,11 +559,53 @@ void FluidSim :: advect2DSelf_RK2(matrix<double>& q, double dt, matrix<double> &
 	}
 	
 }
-void FluidSim :: advect2DSelf(matrix<double>& q, double dt, matrix<double> &u, matrix<double> &v,int component)//keep
+void FluidSim :: advect2DSelf_fwd(matrix<double>& q, double dt, matrix<double> &u, matrix<double> &v,int component)//keep
 {
 	//proper advection - RK2
 //	matrix<double>& temp=q;
 	//q.clear();
+	int nX = this->sGrid->nX;
+	int nY = this->sGrid->nY;
+	double dx = sGrid->dx;
+	//dt*=nX;
+	double x,y, posx, posy;
+	if(component==1){ //Horizontal Component
+#pragma omp parallel for private(x, y, posx, posy)
+		for(int i=1;i<=nY-2;i++)
+		{	for(int j=1;j<=nX-1;j++){
+				x = (j)*dx;
+				y = (i+0.5)*dx;
+				posx = x/dx;
+				posy = y/dx;
+				RK2_FWD(posx,posy, u, v,dt);
+				//	std::cout<<"\n ("<<posx<<" , "<<posy<<")\t";
+				q(i,j) = getVelInterpolated(posx,posy-0.5, u);
+				
+			}
+		}	
+	}
+	else{ //component=2 i.e. Vertical component
+		//#pragma omp parallel for
+#pragma omp parallel for private(x, y, posx, posy)
+		for(int i=1;i<=nY-1;i++)
+			for(int j=1;j<=nX-2;j++){
+				x = (j+0.5)*dx;
+				y = (i)*dx;
+				posx = x/dx;
+				posy = y/dx;
+				RK2_FWD(posx,posy, u, v,dt);
+				q(i,j) = getVelInterpolated(posx-0.5,posy, v);
+			}
+	}
+	
+}
+
+
+void FluidSim :: advect2DSelf(matrix<double>& q, double dt, matrix<double> &u, matrix<double> &v,int component)//keep
+{
+	// proper advection - RK2
+        // matrix<double>& temp=q;
+	// q.clear();
 	int nX = this->sGrid->nX;
 	int nY = this->sGrid->nY;
 	double dx = sGrid->dx;
@@ -522,7 +623,7 @@ void FluidSim :: advect2DSelf(matrix<double>& q, double dt, matrix<double> &u, m
 		posx = x/dx;
 		posy = y/dx;
 		//	std::cout<<"\n ("<<posx<<" , "<<posy<<")\t";
-		RK2_FWD(posx,posy, u, v,-dt);
+		RK2_FWD(posx,posy, u, v,dt);
 		//	std::cout<<"\n ("<<posx<<" , "<<posy<<")\t";
 		fwd = getVelInterpolated(posx,posy-0.5, u);
 		//      posx = x/dx;
@@ -554,7 +655,7 @@ void FluidSim :: advect2DSelf(matrix<double>& q, double dt, matrix<double> &u, m
 		y = (i)*dx;
 		posx = x/dx;
 		posy = y/dx;
-		RK2_FWD(posx,posy, u, v,-dt);
+		RK2_FWD(posx,posy, u, v,dt);
 		fwd = getVelInterpolated(posx-0.5,posy, v);
 		//posx = x/dx;
 		//posy = y/dx;
@@ -1106,7 +1207,7 @@ void  FluidSim :: setValidVelocity(int val) //keep
 
 	if(val){
 	#pragma omp parallel for
-	for(int y=1; y < sGrid->nY-1;y++)
+	  for(int y=1; y < sGrid->nY-1;y++)
 		for(int x=1; x < sGrid->nX-1;x++){
 			if(sGrid->cellType(y,x) == FLUID){
 				uValid(y,x)=val ;
@@ -1201,8 +1302,8 @@ void FluidSim :: RK2_FWD(double &posx, double &posy,matrix<double> &u, matrix<do
   posy/=dx;
   velx = getVelInterpolated( posx, posy-0.5, u);
   vely = getVelInterpolated( posx-0.5, posy, v);
-  posx = x  + dt*velx;
-  posy = y  + dt*vely;
+  posx = x  - dt*velx;
+  posy = y  - dt*vely;
   
   posx = posx < (1)*dx ? (1)*dx:posx;
   posy = posy < (1)*dx ? (1)*dx:posy;
